@@ -11,6 +11,9 @@ from os import path
 import os
 import glob
 import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.metrics import precision_score, recall_score
 
 def locate_data():
     # import dataset
@@ -47,10 +50,8 @@ def load_data(file, Path):
             df = pd.read_csv(fpath)
             dfms.append(df)
         return dfms
-file, Path = locate_data()    
-dfms = load_data(file, Path) 
+
   
-import numpy as np
 def explore_data(dfms):
      
     if len(dfms)==1:
@@ -62,10 +63,80 @@ def explore_data(dfms):
     # Display the correlations
     print("Feature Correlations with the Output:")
     print(correlations.sort_values(ascending=False))       
-    
-    train, validate, test = \
-              np.split(df.sample(frac=1, random_state=42), 
-                       [int(.7*len(df)), int(.8*len(df))])
-    return train, validate, test
+    # Sort correlations for better visualization
+    correlations_sorted = correlations.sort_values(ascending=False)
 
-train, validate, test = explore_data(dfms)
+    # Create a bar plot for correlations
+    plt.figure(figsize=(8, 6))
+    sns.barplot(x=correlations_sorted.index, y=correlations_sorted.values, palette='viridis')
+    plt.title('Correlation of Features with Target Variable', fontsize=16)
+    plt.xlabel('Features', fontsize=12)
+    plt.ylabel('Correlation Coefficient', fontsize=12)
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.show()
+    #_______________________________
+    print(df[['slope','target']].value_counts()) 
+    #train, validate, test = \
+    #          np.split(df.sample(frac=1, random_state=42), 
+    #                   [int(.7*len(df)), int(.8*len(df))])
+    #csv_file_dir = '/Users/nataliyaportman/Documents/GitHub/CardiovascularDiseasePrediction/data/'
+    #train_path = os.path.join(csv_file_dir,'train.csv')  # Specify the desired file path
+    #val_path = os.path.join(csv_file_dir,'validate.csv')  # Specify the desired file path
+    #test_path = os.path.join(csv_file_dir,'test.csv')  # Specify the desired file path
+    #train.to_csv(train_path, index=False)  
+    #validate.to_csv(val_path, index=False) 
+    #test.to_csv(test_path, index=False)
+    
+       
+    #return train, validate, test
+
+
+def predict_rule_based(feature_vector):
+    # feature vector for an individual consists of 12 features
+    # feature vector is of Pandas series type
+    # convert to dictionary
+    feat = feature_vector.to_dict()
+    val = feat['slope']
+    if val == 1 or val == 0:
+        print("Patient has no cardiovascular disease")
+        return 0.0
+    elif val == 2 or val == 3:
+        print("Patient has cardiovascular disease")
+        return 1.0
+    else:
+        print ('Acceptable slope values are 0, 1, 2 and 3. Cannot infer diagnosis')
+        return None
+ 
+def evaluate_acc():
+    # this code evaluates accuracy of prediction using a test set
+    csv_file_dir = '/Users/nataliyaportman/Documents/GitHub/CardiovascularDiseasePrediction/data/'
+    os.chdir(csv_file_dir)
+    df = pd.read_csv('test.csv')
+    s = 0.0
+    y_pred=[]
+    y_true=[]
+    for i in range(len(df.index)):
+        record = df.loc[i,:]
+        pred_y = predict_rule_based(record)
+        true_y = record['target']
+        if true_y == pred_y:
+            s=s+1.0
+        y_pred.append(pred_y)
+        y_true.append(true_y)
+    acc = s/len(df.index)
+    print("Accuracy of the rule-based prediction algorithm is ", acc)   
+    #calculate precision and recall
+
+    precision = precision_score(y_true, y_pred)
+    recall = recall_score(y_true, y_pred)
+    # Print the results
+    print(f"Precision: {precision:.2f}")
+    print(f"Recall: {recall:.2f}")
+
+if __name__ == '__main__':
+    file, Path = locate_data()    
+    dfms = load_data(file, Path)   
+    explore_data(dfms)     
+    #train, validate, test = explore_data(dfms)
+    evaluate_acc()
