@@ -33,8 +33,8 @@ def locate_data():
     else:
         extension = 'csv'
         file = glob.glob('*.{}'.format(extension))
-        if len(file) !=0:
-            Path=loc
+        if len(file) != 0:
+            Path = loc
         
     return file, Path
 
@@ -43,7 +43,7 @@ def load_data(file, Path):
         print('data file in csv format does not exist')
         return None
     else:
-        dfms=[]
+        dfms = []
         # form a file path
         for fl in file:
             fpath = os.path.join(Path, fl)
@@ -55,7 +55,7 @@ def load_data(file, Path):
 def explore_data(dfms):
      
     if len(dfms)==1:
-        df=dfms[0]
+        df = dfms[0]
     
     df = df.drop('patientid', axis=1)
     # compute correlations between features and the target
@@ -114,14 +114,14 @@ def evaluate_acc():
     os.chdir(csv_file_dir)
     df = pd.read_csv('test.csv')
     s = 0.0
-    y_pred=[]
-    y_true=[]
+    y_pred = []
+    y_true = []
     for i in range(len(df.index)):
         record = df.loc[i,:]
         pred_y = predict_rule_based(record)
         true_y = record['target']
         if true_y == pred_y:
-            s=s+1.0
+            s = s+1.0
         y_pred.append(pred_y)
         y_true.append(true_y)
     acc = s/len(df.index)
